@@ -41,8 +41,7 @@ class Catalogue(models.Model):
 
 class DirectMessage(models.Model):
     content = models.TextField(blank=False)
-    author = models.ForeignKey(User,
-    related_name='client_message', on_delete=models.CASCADE)
+    author = models.CharField(max_length=150, null=False, blank=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
 

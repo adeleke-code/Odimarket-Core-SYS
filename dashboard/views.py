@@ -9,7 +9,7 @@ from django.http.response import JsonResponse
 
 from rest_framework import viewsets
 from rest_framework import generics
-from .models import Post, Catalogue, Profile
+from .models import Post, Catalogue, Profile, DirectMessage
 from .permissions import TokenBackend
 from django.core.exceptions import ValidationError
 
@@ -150,3 +150,66 @@ class CatalogueUpdate(APIView):
             return Response({"message": "product successfully deleted"}, 200)
         except Catalogue.DoesNotExist:
             return Response({"message": "product id does not exist!"}, 404)
+
+
+class DirectMessageView(APIView):
+    queryset = DirectMessage.objects.all()
+    serializer_class = DirectMessageSerializer
+    permission_classes = (TokenBackend,)
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                serializer.save(author=request.user)
+                data = {}
+                data['response'] = 'successfully sent a direct message'
+                data['data'] = serializer.data
+                return Response(data)
+            except ValidationError:
+                return Response({"message": "validation error!!"})
+    def get(self, request):
+        all_messages = DirectMessage.objects.all().filter(author=request.user)
+        serializer = DirectMessageSerializer(all_messages, many=True)
+        return Response(serializer.data)
+    def delete(self, request):
+        try:
+            instance = DirectMessage.objects.all().filter(author=request.user)
+            instance.delete()
+            return Response({"message": "all message thread successfully deleted"}, 200)
+        except DirectMessage.DoesNotExist:
+            return Response({"message": "user meesage thread does not exist!"}, 404)
+
+
+class UpdateMessage(APIView):
+    queryset = DirectMessage.objects.all()
+    serializer_class = DirectMessageSerializer
+    permission_classes = (TokenBackend,)
+
+    def get(self, request, pk):
+        try:
+            instance = DirectMessage.objects.get(id=pk)
+            serializer = DirectMessageSerializer(instance)
+            return Response(serializer.data)
+        except DirectMessage.DoesNotExist:
+            return JsonResponse({'error': 'message id not found'}, status=404)
+
+    def put(self, request, pk):
+        try:
+            instance = DirectMessage.objects.get(id=pk)
+        except DirectMessage.DoesNotExist:
+            return JsonResponse({'error': 'message id not found'}, status=404)
+
+        serializer = DirectMessageSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    def delete(self, request, pk):
+        try:
+            instance = DirectMessage.objects.get(id=pk)
+            instance.delete()
+            return Response({"message": "message successfully deleted"}, 200)
+        except DirectMessage.DoesNotExist:
+            return Response({"message": "message id does not exist!"}, 404)
+

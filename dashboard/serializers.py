@@ -53,10 +53,19 @@ class CatalogueSerializer(serializers.ModelSerializer):
 
 
 class DirectMessageSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(
+        read_only=True,
+
+    )
+
+
     class Meta:
         model = DirectMessage
         fields = [
-            'content'
+            'id',
+            'content',
+            'author',
+            'timestamp'
         ]
 
 

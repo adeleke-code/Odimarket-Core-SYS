@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import ProfileView, PostCreateView, CatalogueView, Update, CatalogueUpdate
+from .views import ProfileView, PostCreateView, CatalogueView, Update, CatalogueUpdate, DirectMessageView, UpdateMessage
 
 
 
@@ -14,9 +14,12 @@ urlpatterns = [
     path('', include(router.urls)),
     path('profile', ProfileView.as_view()),
     path('catalogue', CatalogueView.as_view()),
+    path('catalogue/<int:pk>', CatalogueUpdate.as_view()),
     path('post', PostCreateView.as_view()),
     path('post/<int:pk>', Update.as_view()),
-     path('catalogue/<int:pk>', CatalogueUpdate.as_view())
+    path('message', DirectMessageView.as_view()),
+    path('message/<int:pk>', UpdateMessage.as_view()),
+
 
 
 ]
