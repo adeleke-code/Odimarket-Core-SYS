@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import ProfileView, PostCreateView, CatalogueView, UserPostList, ProfileUpdateView
+from .views import ProfileView, PostCreateView, CatalogueView, Update, CatalogueUpdate
 
 
 
@@ -13,10 +13,10 @@ router = routers.DefaultRouter()
 urlpatterns = [
     path('', include(router.urls)),
     path('profile', ProfileView.as_view()),
-    path('cata', CatalogueView.as_view()),
+    path('catalogue', CatalogueView.as_view()),
     path('post', PostCreateView.as_view()),
-    path('posts', UserPostList.as_view()),
-    path('profile/update', ProfileUpdateView.as_view())
+    path('post/<int:pk>', Update.as_view()),
+     path('catalogue/<int:pk>', CatalogueUpdate.as_view())
 
 
 ]

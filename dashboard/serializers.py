@@ -10,6 +10,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            'id',
             'user',
             'name',
             'profile_picture',
@@ -26,6 +27,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
+            'id',
             'content',
             'picture',
             'author',
@@ -33,12 +35,20 @@ class PostSerializer(serializers.ModelSerializer):
   
 
 class CatalogueSerializer(serializers.ModelSerializer):
+
+    owner = serializers.CharField(
+        read_only=True,
+
+    )
     class Meta:
         model = Catalogue
         fields = [
-            'product'
-            'picture'
-            'description'
+            'id',
+            'product',
+            'picture',
+            'description',
+            'owner',
+            'created_at'
         ]
 
 

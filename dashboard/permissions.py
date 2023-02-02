@@ -1,41 +1,13 @@
 from rest_framework import permissions
 from django.contrib.auth.backends import BaseBackend
 from rest_framework.exceptions import AuthenticationFailed
-
 import requests
 import json
-
-
-# class TokenAuthenticator(BaseBackend):
-#     def authenticate(self, request, token=None):
-#         header = request.headers.get('Authorization')
-#         if header is None:
-#             return False
-
-#         try:
-#             token = header.split()[1]
-#             url = 'http://18.207.205.10/auth/auth/verify'
-#             headers = {
-#                         "Content-Type": "application/json",
-#                         "Authorization": f"Bearer {token}"
-#                     } 
-
-#             response = requests.post(url=url, headers=headers)
-#             status = response.status_code
-#             if status == 200:
-#                 return True
-            
-#             else:
-#                 return False
-
-#         except:
-#             False
-
-
-from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth import get_user_model
-
 User = get_user_model()
+
+
+
 
 
 class TokenBackend(permissions.BasePermission):
@@ -54,18 +26,25 @@ class TokenBackend(permissions.BasePermission):
                     } 
 
             response = requests.post(url=url, headers=headers)
-
-            auth_data = json.loads(response.text)
-            email = auth_data['data']['email']
-            user = User.objects.get(email=email)
-
-            request.user = user
-            # print(user)
-            # print(user.__dir__())
-            if user.is_active:
-                return request.user
+            
+            if response.status_code == 400:
+                raise AuthenticationFailed({"message": "invalid token"})
             else:
-                False
+                try:
+
+                    auth_data = json.loads(response.text)
+                    email = auth_data['data']['email']
+                    user = User.objects.get(email=email)
+
+                    request.user = user
+                    # print(user)
+                    # print(user.__dir__())
+                    if user.is_active:
+                        return request.user
+                    else:
+                        False
+                except User.DoesNotExist:
+                    return False
         except User.DoesNotExist:
             return False
     # def authenticate(self, request, token=None):
@@ -104,15 +83,15 @@ class TokenBackend(permissions.BasePermission):
 
 
 
-class IsUser(permissions.BasePermission):
-    print("Hey I'm here")
-    """
-    Allows access only to delivery admin users.
-    """
+# class IsUser(permissions.BasePermission):
+#     print("Hey I'm here")
+#     """
+#     Allows access only to delivery admin users.
+#     """
 
-    def has_permission(self, request, view):
-        print("MONI")
-        if request.user.is_authenticated:
-            return bool(request.user) 
-        else:
-            raise AuthenticationFailed(detail="Authentication credentials were not provided oh ")
+#     def has_permission(self, request, view):
+#         print("MONI")
+#         if request.user.is_authenticated:
+#             return bool(request.user) 
+#         else:
+#             raise AuthenticationFailed(detail="Authentication credentials were not provided oh ")

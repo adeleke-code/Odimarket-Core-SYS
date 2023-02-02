@@ -6,13 +6,10 @@ from rest_framework.response import Response
 from .serializers import ProfileSerializer, PostSerializer, CatalogueSerializer, DirectMessageSerializer
 from rest_framework.views import APIView
 from django.http.response import JsonResponse
-from rest_framework.parsers import JSONParser 
 
-from rest_framework.decorators import api_view
 from rest_framework import viewsets
 from rest_framework import generics
 from .models import Post, Catalogue, Profile
-from .permissions import IsUser
 from .permissions import TokenBackend
 from django.core.exceptions import ValidationError
 
@@ -24,6 +21,7 @@ class ProfileView(APIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = (TokenBackend,)
+
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         data = {}
@@ -32,29 +30,18 @@ class ProfileView(APIView):
         data['response'] = 'successfully created a profile.'
         data['name'] = profile.name
         data['location'] = profile.location
-
         return Response(data)
-    def get(self, request):
 
-        user = Profile.objects.all().filter(user=request.user)
+    def get(self, request):
+        try:
+            user = Profile.objects.all().filter(user=request.user)
+            
+        except Profile.DoesNotExist:
+            return Response({"message": "user profile does not exist, kindly create a new profile"})
         serializer = ProfileSerializer(user, many=True)
         
         return Response(serializer.data)
 
-    # def put(self, request, *args, **kwargs):
-    #     profile = Profile.objects.get(user=request.user)
-    #     profile_data = JSONParser().parse(request) 
-    #     serializer = ProfileSerializer(profile, data=profile_data) 
-    #     if serializer.is_valid(): 
-    #         serializer.save() 
-    #         return Response(serializer.data) 
-    #     return Response(serializer.errors, 400)
-from rest_framework import generics
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
-class ProfileUpdateView(generics.UpdateAPIView):
-    permission_classes = (TokenBackend,)
     def put(self, request):
         try:
             instance = Profile.objects.get(user=request.user)
@@ -66,6 +53,16 @@ class ProfileUpdateView(generics.UpdateAPIView):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+
+    def delete(self, request):
+        try:
+            user = Profile.objects.get(user=request.user)
+            user.delete()
+            return Response({"message": "user profile successfully deleted"})
+        except Profile.DoesNotExist:
+            return Response({"message": "User does not exist"})
+        
+
 
         
 class PostCreateView(APIView):
@@ -82,26 +79,33 @@ class PostCreateView(APIView):
                 data['response'] = 'successfully created a post'
                 data['data'] = serializer.data
                 return Response(data)
-                
             except ValidationError:
                 return Response({"message": "validation error!!"})
- 
-class UserPostList(generics.ListAPIView):
-    serializer_class = PostSerializer
-    permission_classes = (TokenBackend,)
-    def get(self, request):
 
+    def get(self, request):
         all_post = Post.objects.all().filter(author=request.user)
         serializer = PostSerializer(all_post, many=True)
-        
         return Response(serializer.data)
+class Update(APIView):
+    def put(self, request, pk):
+        try:
+            instance = Post.objects.get(id=pk)
+        except Post.DoesNotExist:
+            return JsonResponse({'error': 'post not found'}, status=404)
 
-
-
-
-
-
-
+        serializer = PostSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    def delete(self, request, pk):
+        try:
+            instance = Post.objects.get(id=pk)
+            instance.delete()
+            return Response({"message": "post successfully deleted"}, 200)
+        except Post.DoesNotExist:
+            return Response({"message": "post id does not exist!"}, 404)
+    
 
 
 
@@ -110,12 +114,44 @@ class CatalogueView(APIView):
     serializer_class = CatalogueSerializer
     permission_classes = (TokenBackend,)
 
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                serializer.save(owner=request.user)
+                data = {}
+                data['response'] = 'successfully created a catalogue'
+                data['data'] = serializer.data
+                return Response(data)
+            except ValidationError:
+                return Response({"message": "validation error!!"})
 
-    def get(self, request, *args, **kwargs):
-        print(request.user)
-        users = User.objects.all()
-        print(users, "/n")
-        return Response({"users": "all users"}, 200)
+    def get(self, request):
+        all_products = Catalogue.objects.all().filter(owner=request.user)
+        serializer = CatalogueSerializer(all_products, many=True)
+        return Response(serializer.data)
+
+class CatalogueUpdate(APIView):
+    def put(self, request, pk):
+        try:
+            instance = Catalogue.objects.get(id=pk)
+        except Catalogue.DoesNotExist:
+            return JsonResponse({'error': 'product not found'}, status=404)
+
+        serializer = CatalogueSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    def delete(self, request, pk):
+        try:
+            instance = Catalogue.objects.get(id=pk)
+            instance.delete()
+            return Response({"message": "product successfully deleted"}, 200)
+        except Catalogue.DoesNotExist:
+            return Response({"message": "product id does not exist!"}, 404)
+
+
 
 
 

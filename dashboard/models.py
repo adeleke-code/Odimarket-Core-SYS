@@ -31,7 +31,7 @@ class Post(models.Model):
 
 class Catalogue(models.Model):
     product = models.CharField(max_length=250)
-    picture = models.ImageField(upload_to='image/')
+    picture = models.ImageField(blank=True, upload_to='image/')
     description = models.TextField(blank=False)
     owner = models.CharField(max_length=150, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
