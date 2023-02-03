@@ -1,21 +1,18 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth import get_user_model
 from accounts.models import User
 from rest_framework.response import Response
 from .serializers import ProfileSerializer, PostSerializer, CatalogueSerializer, DirectMessageSerializer
 from rest_framework.views import APIView
 from django.http.response import JsonResponse
-
 from rest_framework import viewsets
 from rest_framework import generics
 from .models import Post, Catalogue, Profile, DirectMessage
 from .permissions import TokenBackend
 from django.core.exceptions import ValidationError
-
-
 User = get_user_model()
-# Create your views here.
+
+
+
 
 class ProfileView(APIView):
     queryset = Profile.objects.all()
@@ -35,15 +32,13 @@ class ProfileView(APIView):
 
     def get(self, request):
         try:
-            user = Profile.objects.all().filter(user=request.user)
-            
+            user = Profile.objects.all().filter(user=request.user)  
         except Profile.DoesNotExist:
             return Response({"message": "user profile does not exist, kindly create a new profile"})
         serializer = ProfileSerializer(user, many=True)
         data = {
             "profile_data": serializer.data
         }
-        
         return Response(data)
 
     def put(self, request):
@@ -139,17 +134,18 @@ class CatalogueView(APIView):
         return Response(serializer.data)
 
 class CatalogueUpdate(APIView):
+
     def put(self, request, pk):
         try:
             instance = Catalogue.objects.get(id=pk)
         except Catalogue.DoesNotExist:
             return JsonResponse({'error': 'product not found'}, status=404)
-
         serializer = CatalogueSerializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+
     def delete(self, request, pk):
         try:
             instance = Catalogue.objects.get(id=pk)
@@ -175,10 +171,12 @@ class DirectMessageView(APIView):
                 return Response(data)
             except ValidationError:
                 return Response({"message": "validation error!!"})
+
     def get(self, request):
         all_messages = DirectMessage.objects.all().filter(author=request.user)
         serializer = DirectMessageSerializer(all_messages, many=True)
         return Response(serializer.data)
+
     def delete(self, request):
         try:
             instance = DirectMessage.objects.all().filter(author=request.user)
@@ -212,6 +210,7 @@ class UpdateMessage(APIView):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+        
     def delete(self, request, pk):
         try:
             instance = DirectMessage.objects.get(id=pk)
