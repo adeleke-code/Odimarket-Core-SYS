@@ -28,6 +28,7 @@ class ProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         profile = serializer.save(user=request.user)
         data['response'] = 'successfully created a profile.'
+        data['user'] = profile.user
         data['name'] = profile.name
         data['location'] = profile.location
         return Response(data)
@@ -39,8 +40,11 @@ class ProfileView(APIView):
         except Profile.DoesNotExist:
             return Response({"message": "user profile does not exist, kindly create a new profile"})
         serializer = ProfileSerializer(user, many=True)
+        data = {
+            "profile_data": serializer.data
+        }
         
-        return Response(serializer.data)
+        return Response(data)
 
     def put(self, request):
         try:
@@ -85,7 +89,10 @@ class PostCreateView(APIView):
     def get(self, request):
         all_post = Post.objects.all().filter(author=request.user)
         serializer = PostSerializer(all_post, many=True)
-        return Response(serializer.data)
+        data = {
+            "all post": serializer.data
+        }
+        return Response(data)
 class Update(APIView):
     def put(self, request, pk):
         try:

@@ -3,6 +3,9 @@ from django.contrib.auth.backends import BaseBackend
 from rest_framework.exceptions import AuthenticationFailed
 import requests
 import json
+import os
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv())
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -19,7 +22,7 @@ class TokenBackend(permissions.BasePermission):
         try:
             token = headers.split()[1]
             
-            url = 'http://18.207.205.10/auth/auth/verify'
+            url = os.getenv("auth_verify")
             headers = {
                         "Content-Type": "application/json",
                         "Authorization": f"Bearer {token}"
