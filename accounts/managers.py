@@ -37,6 +37,10 @@ class UserManager(BaseUserManager):
         admin.save(using=self._db)
 
         return admin
+    def create_artisan(self, email, password, **extra_fields):
+        artisan = self._create_user(email, password, is_user=True, is_artisan=True, **extra_fields)
+
+        artisan.save(using=self._db)
 
     def create_user(self, email, password=None, **extra_fields):
         user = self._create_user(email, password, is_user=True, **extra_fields)

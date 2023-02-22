@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .serializers import UserRegistrationSerializer, LoginSerializer
+from .serializers import UserRegistrationSerializer, LoginSerializer, ArtisanRegistrationSerializer
 import requests
 import os
 from dotenv import find_dotenv, load_dotenv
@@ -21,6 +21,17 @@ class UserRegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         account = serializer.save()
         data['response'] = 'successfully registered a new user.'
+        data['email'] = account.email
+        data['first_name'] = account.first_name
+
+        return Response(data)
+class ArtisanRegisterView(APIView):
+    def post(self, request):
+        serializer = ArtisanRegistrationSerializer(data=request.data)
+        data = {}
+        serializer.is_valid(raise_exception=True)
+        account = serializer.save()
+        data['response'] = 'artisan account successfully created'
         data['email'] = account.email
         data['first_name'] = account.first_name
 

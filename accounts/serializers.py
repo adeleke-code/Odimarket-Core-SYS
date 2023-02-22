@@ -12,7 +12,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'password', 'password2']
 		extra_kwargs = {
 				'password': {'write_only': True},
-		}	
+		}
 	def	save(self):
 		account = User(
 					first_name=self.validated_data['first_name'],
@@ -28,6 +28,29 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		account.save()
 
 		return account
+	
+
+class ArtisanRegistrationSerializer(serializers.ModelSerializer):
+
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    role = serializers.CharField(max_length=100, default='admin')
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'password', 'password2']
+        extra_kwargs = {
+				'password': {'write_only': True},
+		}	
+
+    def validate(self, attrs):
+        password=attrs.get('password')
+        password2=attrs.pop('password2')
+        if password != password2:
+            raise serializers.ValidationError("Password and Confirm Password Does not match")
+        return attrs
+    
+    def create(self, validate_data):
+
+        return User.objects.create_artisan(**validate_data)
 
 
 

@@ -88,7 +88,9 @@ class PostCreateView(APIView):
             "all post": serializer.data
         }
         return Response(data)
+
 class Update(APIView):
+
     def put(self, request, pk):
         try:
             instance = Post.objects.get(id=pk)
@@ -100,6 +102,7 @@ class Update(APIView):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+        
     def delete(self, request, pk):
         try:
             instance = Post.objects.get(id=pk)
